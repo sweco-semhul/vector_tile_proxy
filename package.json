@@ -1,0 +1,30 @@
+{
+  "name": "tilelive-bridge",
+  "version": "0.6.0",
+  "main": "./index.js",
+  "description": "Datasource => vector tiles bridge backend for tilelive",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mapbox/tilelive-bridge.git"
+  },
+  "licenses": [
+    {
+      "type": "BSD"
+    }
+  ],
+  "dependencies": {
+    "mapnik": "~1.4.7",
+    "sphericalmercator": "1.0.x",
+    "mapnik-pool": "0.0.0",
+    "tilelive-bridge": "0.6.0"
+  },
+  "devDependencies": {
+    "mocha": "1.21.4"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "engines": {
+    "node": "0.10.x"
+  }
+}

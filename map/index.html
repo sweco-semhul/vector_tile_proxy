@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    
+    <script src='mapboxgljs/dist/mapbox-gl.js'></script>
+    <link href='mapboxgljs/dist/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+
+    var layerName = 'world_merc';
+    // Style configuration
+    var style = {
+        version: 5,
+        layers: [
+            {
+                id: 'background',
+                style: {
+                    'background-color': 'rgb(244,239,225)'
+                },
+                type: 'background'
+            },
+            {
+                id: 'world',
+                source: 'world',
+                'source-layer': layerName,
+                type: 'fill',
+                style: {
+                   "fill-outline-color": "#d5d1c6"
+                }
+            }
+        ],
+        sources: {
+            'world': {
+                type: 'vector',
+                url: 'http://localhost:3000/vectorproxy/info/' + layerName
+            }
+        }
+    };
+
+    // Init map
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: style
+    });
+    map.debug = true;
+
+    map.setView([0,0], 0, 0);
+
+
+
+</script>
+
+</body>
+</html>
