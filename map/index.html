@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8' />
+    
     <title></title>
     
+    <meta charset='utf-8' />
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no, width=device-width">
+    <!-- width=device-width causes the iPhone 5 to letterbox the app, so we want to exclude it for iPhone 5 to allow full screen apps -->
+    <meta name="viewport" id="vp" content="initial-scale=1.0, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" /> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <script src='mapboxgljs/dist/mapbox-gl.js'></script>
     <link href='mapboxgljs/dist/mapbox-gl.css' rel='stylesheet' />
     <style>
@@ -16,10 +23,111 @@
 <div id='map'></div>
 <script>
 
-    var layerName = 'world_merc';
-    // Style configuration
     var style = {
         version: 5,
+        glyphs: "/fontstack/{fontstack}/{range}.pbf",
+        constants: {
+             "@motorway_width": {
+                "stops": [
+                    [
+                        4,
+                        0
+                    ],
+                    [
+                        5,
+                        0.5
+                    ],
+                    [
+                        7,
+                        0.8
+                    ],
+                    [
+                        9,
+                        1
+                    ],
+                    [
+                        10,
+                        1.2
+                    ],
+                    [
+                        11,
+                        2
+                    ],
+                    [
+                        12,
+                        3
+                    ],
+                    [
+                        13,
+                        4
+                    ],
+                    [
+                        14,
+                        6
+                    ],
+                    [
+                        15,
+                        9
+                    ],
+                    [
+                        16,
+                        12
+                    ],
+                    [
+                        17,
+                        14
+                    ]
+                ]
+            },
+            "@motorway_casing_width": {
+                "stops": [
+                    [
+                        6.5,
+                        0.6
+                    ],
+                    [
+                        7,
+                        0.8
+                    ],
+                    [
+                        9,
+                        2.8
+                    ],
+                    [
+                        10,
+                        3
+                    ],
+                    [
+                        11,
+                        4
+                    ],
+                    [
+                        12,
+                        5
+                    ],
+                    [
+                        13,
+                        6.5
+                    ],
+                    [
+                        14,
+                        9
+                    ],
+                    [
+                        15,
+                        12
+                    ],
+                    [
+                        16,
+                        15
+                    ],
+                    [
+                        17,
+                        17
+                    ]
+                ]
+            }
+        },
         layers: [
             {
                 id: 'background',
@@ -29,19 +137,80 @@
                 type: 'background'
             },
             {
-                id: 'world',
-                source: 'world',
-                'source-layer': layerName,
-                type: 'fill',
+                id: 'postalcodes',
+                source: 'postalcodes',
+                'source-layer': 'postalcodes',
+                type: 'line',
                 style: {
-                   "fill-outline-color": "#d5d1c6"
+                   'line-color': '#000000',
+                   'line-width': 2
+                }
+            },
+            {
+                id: 'postalcodes_text',
+                source: 'postalcodes',
+                'source-layer': 'postalcodes',
+                type: 'symbol',
+                style: {
+                   'text-color': '#000000',
+                   'text-size': 10,
+                   'text-halo-color': '#FFFFFF',
+                   'text-halo-width': 5,
+                   'text-halo-blur': 2
+
+                },
+                render: {
+                    'symbol-placement': 'line',
+                    'text-horizontal-align': 'center',
+                    'text-vertical-align': 'center',
+                    'text-font': 'Open Sans Regular, Arial Unicode MS Regular',
+                    'text-field': '{postnummer}',
+                    'text-keep-upright': false
+                }
+            },
+            {
+                id: 'roads_casing',
+                source: 'roads',
+                'source-layer': 'roads',
+                type: 'line',
+                style: {
+                    "line-color": "#616161",
+                    "line-width": "@motorway_casing_width",
+                    "line-opacity": {
+                        "stops": [
+                            [ 5.5, 0 ],
+                            [ 6, 1 ]
+                        ]
+                    }
+                }
+            },
+             {
+                id: 'roads',
+                source: 'roads',
+                'source-layer': 'roads',
+                type: 'line',
+                style: {
+                    "line-color": "#cda0a0",
+                    "line-width": "@motorway_width",
+                    "line-opacity": {
+                        "stops": [
+                            [ 5.5, 0 ],
+                            [ 6, 1 ]
+                        ]
+                    }
                 }
             }
         ],
         sources: {
-            'world': {
+            'postalcodes': {
                 type: 'vector',
-                url: 'http://localhost:3000/vectorproxy/info/' + layerName
+                url: '/vectorproxy/info/postalcodes'
+            },
+            'roads': {
+                type: 'vector',
+                url: '/vectorproxy/info/roads',
+                minzoom: 12,
+                maxzoom: 18,
             }
         }
     };
@@ -51,9 +220,9 @@
       container: 'map',
       style: style
     });
-    map.debug = true;
+    map.debug = false;
 
-    map.setView([0,0], 0, 0);
+    map.setView([59.28583019249484, 18.075017187386294], 9, 0);
 
 
 
