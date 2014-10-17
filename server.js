@@ -8,6 +8,10 @@ var UPDATE = process.env.UPDATE;
 
 var vectorserver_path = 'vectorproxy';
 
+var debug = process.argv.length > 0 && process.argv[0] === 'debug' || false;
+if(!debug) {
+  console.debug = function() {};
+}
 
 var createBridge = function(id, xml, callback) {
   var bridge = new Bridge({ xml:xml, blank:true }, function(err, s) {
@@ -19,7 +23,7 @@ var createBridge = function(id, xml, callback) {
 var getTile = function(bridge, x,y,z, format, callback) {
   bridge.getTile(z,x,y, function(err, buffer, headers) {
       if(buffer) {
-        console.log('loaded tile:', z+'/'+y+'/'+x, cluster.worker.id);
+        console.debug('loaded tile:', z+'/'+y+'/'+x, cluster.worker.id);
         zlib.gunzip(buffer, function(err, buffer) {
           if(format === 'json') {
             var vtile = new mapnik.VectorTile(+z,+x,+y);
@@ -31,7 +35,7 @@ var getTile = function(bridge, x,y,z, format, callback) {
           }
         });
       } else {
-        console.error(err);
+        console.error(z+'/'+y+'/'+x,err);
         callback(err.toString());
       }
   });
@@ -87,10 +91,8 @@ if (cluster.isMaster) {
   var express = require('express');
   var app = express();
 
-  app.configure(function(){
-    app.use('/map', express.static(__dirname + '/map'));
-    app.use('/fontstack', express.static(__dirname + '/fontstack'));
-  });
+  app.use('/map', express.static(__dirname + '/map'));
+  app.use('/fontstack', express.static(__dirname + '/fontstack'));
 
   app.get('/'+vectorserver_path+'/:request/:layer?/:x?/:y?/:z?/:format?', function(req, res){
 
