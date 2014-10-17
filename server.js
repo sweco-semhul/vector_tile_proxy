@@ -6,26 +6,17 @@ var mapnik = require('mapnik');
 var zlib = require('zlib');
 var UPDATE = process.env.UPDATE;
 
-var source;
-var bridge;
-var loadedBridge;
 var vectorserver_path = 'vectorproxy';
 
 
-var setBridge = function(id, xml, callback) {
-  if(loadedBridge !== id) {
-    bridge = new Bridge({ xml:xml, blank:true }, function(err, s) {
-      source = s;
-      callback(bridge, source);
-    });
-    loadedBridge = id;
-  } else {
-    callback(bridge, source);
-  }
+var createBridge = function(id, xml, callback) {
+  var bridge = new Bridge({ xml:xml, blank:true }, function(err, s) {
+    callback(bridge, s);
+  });
 }
 
 
-var getTile = function(bridge, x,y,z, format, res) {
+var getTile = function(bridge, x,y,z, format, callback) {
   bridge.getTile(z,x,y, function(err, buffer, headers) {
       if(buffer) {
         console.log('loaded tile:', z+'/'+y+'/'+x, cluster.worker.id);
@@ -34,23 +25,23 @@ var getTile = function(bridge, x,y,z, format, res) {
             var vtile = new mapnik.VectorTile(+z,+x,+y);
             vtile.setData(buffer);
             vtile.parse();
-            res.send(vtile);
+            callback(vtile);
           } else {
-            res.send(buffer);
+            callback(buffer);
           }
         });
       } else {
         console.error(err);
-        res.send(err.toString());
+        callback(err.toString());
       }
   });
 }
 
-var getInfo = function(source, layer, res) {
+var getInfo = function(source, layer, callback) {
   source.getInfo(function(err, info) { 
     if(err) {
       console.error(err);
-      res.send(err.toString());
+      callback(err.toString());
       return;
     }
     info.format = 'pbf';
@@ -66,7 +57,7 @@ var getInfo = function(source, layer, res) {
       }
     ];
 
-    res.send(info);
+    callback(info);
   });
 }
 
@@ -117,12 +108,14 @@ if (cluster.isMaster) {
 
     var xml = sql_lite;
 
-    setBridge(req.params.layer, xml, function(bridge, source) {
+    createBridge(req.params.layer, xml, function(bridge, source) {
       if(req.params.request === 'info') {
-        getInfo(source, req.params.layer, res);
+        getInfo(source, req.params.layer, function(d){ res.send(d)});
       } else {
-        getTile(bridge, req.params.x,req.params.y,req.params.z,req.params.format,res);
+        getTile(bridge, req.params.x,req.params.y,req.params.z,req.params.format, function(d){ res.send(d)});
       }
+      delete bridge;
+      delete source;
     });
   });
 
